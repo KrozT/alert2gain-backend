@@ -15,6 +15,41 @@ var authPassword = Environment.GetEnvironmentVariable("A2G_PASSWORD");
 var sensorId = Environment.GetEnvironmentVariable("A2G_SENSOR_ID");
 
 /*
+ * Check if the Environment Variables are set and if not, ask the user to input them
+ */
+void CheckIfEnvironmentVariablesAreSet()
+{
+    if (string.IsNullOrEmpty(api))
+    {
+        Console.WriteLine("Input the value of A2G_API_URL:");
+        api = Console.ReadLine();
+    }
+
+    if (string.IsNullOrEmpty(authEmail))
+    {
+        Console.WriteLine("Input the value of A2G_EMAIL:");
+        authEmail = Console.ReadLine();
+    }
+
+    if (string.IsNullOrEmpty(authPassword))
+    {
+        Console.WriteLine("Input the value of A2G_PASSWORD:");
+        authPassword = Console.ReadLine();
+    }
+
+    if (string.IsNullOrEmpty(sensorId))
+    {
+        Console.WriteLine("Input the value of A2G_SENSOR_ID:");
+        sensorId = Console.ReadLine();
+    }
+}
+
+/*
+ * Only for convenience, check if the Environment Variables are set
+ */
+CheckIfEnvironmentVariablesAreSet();
+
+/*
  * Define the HTTP Client and the Sensors Collection
  */
 var apiUri = new Uri(api!);
