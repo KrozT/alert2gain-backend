@@ -4,19 +4,30 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using A2G.Backend.Core;
 
-var apiUri = new Uri("https://devtest.a2g.io/api");
+/*
+ * API Necessary Credentials 
+ */
+var api = Environment.GetEnvironmentVariable("A2G_API_URL");
+
+var authEmail = Environment.GetEnvironmentVariable("A2G_EMAIL");
+var authPassword = Environment.GetEnvironmentVariable("A2G_PASSWORD");
+
+var sensorId = Environment.GetEnvironmentVariable("A2G_SENSOR_ID");
+
+/*
+ * Define the HTTP Client and the Sensors Collection
+ */
+var apiUri = new Uri(api!);
 var client = new HttpClient();
 
 var sensorsCollection = new List<Sensor>();
 
+/*
+ * Helper Methods 
+ */
 void SetToken(string? token)
 {
     client!.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-}
-
-void SetSensorId(string? sensorId)
-{
-    client!.DefaultRequestHeaders.Add("SensorId", sensorId);
 }
 
 async Task Login(string email, string password)
@@ -41,9 +52,9 @@ async Task Login(string email, string password)
     }
 }
 
-async Task FetchRecords(string sensorId, int pageNumber, int pageSize)
+async Task FetchRecords(string id, int pageNumber, int pageSize)
 {
-    var response = await client!.GetAsync($"{apiUri}/records/{sensorId}?pageNumber={pageNumber}&pageSize={pageSize}");
+    var response = await client!.GetAsync($"{apiUri}/records/{id}?pageNumber={pageNumber}&pageSize={pageSize}");
     if (response.IsSuccessStatusCode)
     {
         var result = await response.Content.ReadAsStringAsync();
@@ -51,7 +62,7 @@ async Task FetchRecords(string sensorId, int pageNumber, int pageSize)
         var data = sensors.GetProperty("data");
 
         sensorsCollection.AddRange(data.EnumerateArray()
-            .Select(record => new Sensor(sensorId, 
+            .Select(record => new Sensor(id, 
                     record.GetProperty("ts").GetString()!, 
                     record.GetProperty("value").GetInt32())
             ));
@@ -124,18 +135,10 @@ async Task SendResults(int noiseHigh, int noiseMedium, int noiseLow, int rangeAm
     }
 }
 
-
-/*
- * API Necessary Credentials 
- */
-var email = Environment.GetEnvironmentVariable("A2G_EMAIL");
-var password = Environment.GetEnvironmentVariable("A2G_PASSWORD");
-var sensorId = Environment.GetEnvironmentVariable("A2G_SENSOR_ID");
-
 /*
  * API Calls 
  */
-await Login(email!, password!);
+await Login(authEmail!, authPassword!);
 await FetchRecords(sensorId!, 1, 10000);
 
 var sensorsByNoise = CountSensorsByNoise(sensorsCollection);
